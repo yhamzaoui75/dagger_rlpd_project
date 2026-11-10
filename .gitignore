@@ -21,4 +21,4 @@ pyproject.toml
 # Docs communs
 /docs/
 
-src/agents/team1/docs/
+src/agents/team1/docs/.DS_Store
