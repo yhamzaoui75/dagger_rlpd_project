@@ -8,3 +8,6 @@ pysupertuxkart2
 pytz
 requests
 omegaconf
+scipy
+torch
+rl-mind
