@@ -7,7 +7,7 @@ wheels/
 *.egg-info
 *.pkl
 *.pt
-data/
+*.csv
 
 # Virtual environments
 .venv
