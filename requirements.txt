@@ -10,4 +10,5 @@ requests
 omegaconf
 scipy
 torch
-rl-mind
+rl-mindpink-noise-rl
+pink-noise-rl

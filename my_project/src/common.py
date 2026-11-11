@@ -21,6 +21,7 @@ from pathlib import Path
 import gymnasium as gym
 import numpy as np
 from scipy import stats
+from pink import PinkNoiseProcess
 
 
 def find_stk_src():
@@ -288,30 +289,78 @@ class SoloKartEnv(gym.Env):
 if ENV_ID not in gym.registry:
     gym.register(id=ENV_ID, entry_point=SoloKartEnv)
 
+NOISE_TYPES = ("white", "pink", "ou")
+OU_THETA = 0.15  # mean-reversion rate of Eberhard et al. (2023), after Lillicrap et al. (2016)
+OU_DT = 0.01     # time step of the OU discretization in Eberhard et al. (2023); only theta * dt matters
 
 
-def collect_expert_dataset(n_episodes, noise_std=0.0, seed=0, normalize=True, path=None):
+class OrnsteinUhlenbeckProcess:
+    """Ornstein-Uhlenbeck noise as in Eberhard et al. (ICLR 2023), Appendix A.1.
+
+    Euler discretization ``x_t = x_{t-1} - theta * x_{t-1} * dt + sigma * sqrt(dt) * eps_t``
+    started at ``x_{-1} = 0``, with the variance correction
+    ``sigma = sqrt(2 * theta - theta**2 * dt)`` that makes the limiting marginal
+    a standard Gaussian, like the white and pink noises.
+    """
+
+    def __init__(self, size, theta=OU_THETA, dt=OU_DT, rng=None):
+        self.size = size
+        self.theta = theta
+        self.dt = dt
+        self.sigma = math.sqrt(2.0 * theta - theta**2 * dt)
+        self.rng = np.random.default_rng() if rng is None else rng
+        self.reset()
+
+    def reset(self):
+        """Restart the process at x = 0, at the beginning of an episode."""
+        self.x = np.zeros(self.size)
+
+    def sample(self):
+        """Advance the process by one step and return its new value."""
+        eps = self.rng.standard_normal(self.size)
+        self.x = self.x - self.theta * self.x * self.dt + self.sigma * math.sqrt(self.dt) * eps
+        return self.x
+
+
+def collect_expert_dataset(n_episodes, noise_std=0.0, noise_type="white", seed=0, normalize=True, path=None):
     """Roll out the expert and return its transitions as NumPy arrays, optionally saved to ``.npz``.
 
-    The executed action is the expert's action plus Gaussian noise of standard
-    deviation ``noise_std``, clipped to [-1, 1]; without noise, every lap is the
-    same deterministic trajectory. Both the executed action (``action``, what an
-    off-policy learner like RLPD must use) and the expert's clean label
-    (``expert_action``, what behavioural cloning and DAgger use) are stored,
-    together with ``obs``, ``next_obs``, ``reward``, ``terminated``,
-    ``truncated`` and the ``episode`` index of each transition.
+    The executed action is the expert's action plus ``noise_std`` times a
+    unit-variance noise, clipped to [-1, 1]; without noise, every lap is the
+    same deterministic trajectory. The noise is ``"white"`` (independent
+    Gaussian draws at each step), ``"pink"`` (the pink noise process of
+    Eberhard et al., ICLR 2023, from their ``pink-noise-rl`` package: a buffer
+    of ``MAX_EPISODE_STEPS`` steps, refilled when exhausted and not reset
+    between episodes, as in their implementation) or ``"ou"`` (their
+    variance-corrected Ornstein-Uhlenbeck noise, restarted at 0 at each
+    episode). Both the executed action (``action``, what an off-policy learner
+    like RLPD must use) and the expert's clean label (``expert_action``, what
+    behavioural cloning and DAgger use) are stored, together with ``obs``,
+    ``next_obs``, ``reward``, ``terminated``, ``truncated`` and the ``episode``
+    index of each transition.
     """
+    if noise_type not in NOISE_TYPES:
+        raise ValueError(f"Unknown noise type {noise_type!r}, expected one of {NOISE_TYPES}")
     env = SoloKartEnv(normalize=normalize)
     rng = np.random.default_rng(seed)
+    if noise_type == "pink":
+        process = PinkNoiseProcess((ACTION_DIM, MAX_EPISODE_STEPS), rng=rng)
+    elif noise_type == "ou":
+        process = OrnsteinUhlenbeckProcess(ACTION_DIM, rng=rng)
+    else:
+        process = None
     keys = ("obs", "next_obs", "action", "expert_action", "reward", "terminated", "truncated", "episode")
     data = {key: [] for key in keys}
     try:
         for episode in range(n_episodes):
             obs, _ = env.reset(seed=seed + episode)
+            if noise_type == "ou":
+                process.reset()
             done = False
             while not done:
                 label = obs["expert_action"]
-                action = np.clip(label + noise_std * rng.standard_normal(ACTION_DIM), -1.0, 1.0)
+                noise = rng.standard_normal(ACTION_DIM) if process is None else process.sample()
+                action = np.clip(label + noise_std * noise, -1.0, 1.0)
                 next_obs, reward, terminated, truncated, _ = env.step(action)
                 for key, value in zip(keys, (obs["features"], next_obs["features"], action, label,
                                              reward, terminated, truncated, episode)):
@@ -325,7 +374,7 @@ def collect_expert_dataset(n_episodes, noise_std=0.0, seed=0, normalize=True, pa
         arrays[key] = arrays[key].astype(np.float32)
     if path is not None:
         Path(path).parent.mkdir(parents=True, exist_ok=True)
-        np.savez_compressed(path, noise_std=noise_std, seed=seed, **arrays)
+        np.savez_compressed(path, noise_type=noise_type, noise_std=noise_std, seed=seed, **arrays)
     return arrays
 
 
@@ -434,6 +483,7 @@ def main():
     parser.add_argument("--feature-stats", action="store_true", help="(re)compute data/feature_stats.npz")
     parser.add_argument("--dataset", type=int, metavar="N_EPISODES", help="collect an expert dataset")
     parser.add_argument("--noise", type=float, default=0.0, help="std of the noise on executed actions")
+    parser.add_argument("--noise-type", choices=NOISE_TYPES, default="white", help="temporal structure of the noise")
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--check", action="store_true", help="drive the expert through SoloKartEnv")
     args = parser.parse_args()
@@ -442,15 +492,15 @@ def main():
         compute_feature_stats()
         print(f"Feature statistics written to {FEATURE_STATS_PATH}")
     if args.dataset:
-        path = DATA_DIR / f"expert_{EXPERT_NAME}_n{args.dataset}_noise{args.noise:g}_seed{args.seed}.npz"
-        data = collect_expert_dataset(args.dataset, noise_std=args.noise, seed=args.seed, path=path)
+        tag = "noise" if args.noise_type == "white" else args.noise_type
+        path = DATA_DIR / f"expert_{EXPERT_NAME}_n{args.dataset}_{tag}{args.noise:g}_seed{args.seed}.npz"
+        data = collect_expert_dataset(args.dataset, noise_std=args.noise, noise_type=args.noise_type, seed=args.seed, path=path)
         finished = int(data["terminated"].sum())
         print(f"{len(data['reward'])} transitions, {finished}/{args.dataset} laps finished, written to {path}")
     if args.check:
         summary = summarize_laps(evaluate_policy("expert"))
         print(f"Expert through SoloKartEnv: {summary['finished']}/{summary['laps']} laps finished, "
               f"mean {summary.get('mean', math.nan):.1f} steps (reference {EXPERT_LAP_STEPS})")
-
 
 if __name__ == "__main__":
     main()

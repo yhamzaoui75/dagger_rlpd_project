@@ -1,12 +1,11 @@
-import copy
+import copy, csv, json, math
 import numpy as np
-import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import gymnasium as gym
 import common
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from torch import Tensor
 from torch.distributions import Independent, Normal, TanhTransform, TransformedDistribution
 from tqdm.auto import tqdm
@@ -16,7 +15,7 @@ from rl_mind.env import VecEnv
 from rl_mind.data import ReplayBuffer, Transitions
 from rl_mind.collectors import TransitionCollector
 from rl_mind.profiles import Profile
-from rl_mind.evaluation import Evaluator
+from pathlib import Path
 
 class SquashedGaussianActor(Actor[StochasticAction]):
     def __init__(
@@ -53,6 +52,13 @@ class SquashedGaussianActor(Actor[StochasticAction]):
     def act(self, obs: Tensor) -> Tensor:
         features = self.backbone(obs)
         return torch.tanh(self.mean_layer(features))
+
+def lap_policy(actor: SquashedGaussianActor):
+    def policy(obs):
+        with torch.no_grad():
+            x = torch.as_tensor(obs["features"]).unsqueeze(0)
+            return actor.act(x).squeeze(0).numpy()
+    return policy
 
 class EnsembleLinear(nn.Module):
     """`num` independent linear layers, evaluated in a single batched call"""
@@ -181,7 +187,6 @@ class RLPDConfig:
     critic_layer_norm: bool = True
 
     eval_interval: int = Profile.pick(2_000, fast_test=400)
-    n_eval_envs: int = 1
 
 def load_offline_buffer(
     path: str,
@@ -230,7 +235,7 @@ class UniformRandomActor(Actor[StochasticAction]):
         action = torch.rand(n, self.action_dim) * 2.0 - 1.0
         return StochasticAction(value=action, log_prob=torch.zeros(n))
     
-def run_rlpd(cfg: RLPDConfig) -> Evaluator:
+def run_rlpd(cfg: RLPDConfig) -> dict:
     torch.manual_seed(cfg.seed)
     env = VecEnv(cfg.env_name, cfg.n_envs, seed=cfg.seed, wrappers=[FeaturesOnly], expert=None)
 
@@ -253,7 +258,7 @@ def run_rlpd(cfg: RLPDConfig) -> Evaluator:
     n_online = cfg.batch_size - n_offline
     offline_buffer = (load_offline_buffer(cfg.dataset_path, env.observation_dim, env.action_dim) if n_offline > 0 else None)
 
-    evaluator = Evaluator(VecEnv(cfg.env_name, cfg.n_eval_envs, seed=cfg.seed + 100, wrappers=[FeaturesOnly], expert=None), every=cfg.eval_interval)
+    curve, next_eval = [], cfg.learning_starts
 
     pbar = tqdm(total=cfg.max_steps)
     while collector.steps < cfg.max_steps:
@@ -290,7 +295,26 @@ def run_rlpd(cfg: RLPDConfig) -> Evaluator:
             alpha_loss.backward()
             alpha_optimizer.step()
 
-        if result := evaluator.run_if_needed(collector.steps, actor):
-            pbar.set_description(f"eval={result.mean:7.1f} best={evaluator.best_reward:7.1f}")
+        if collector.steps >= next_eval:
+            lap = common.evaluate_policy(lap_policy(actor), seeds=common.EVAL_SEEDS[:1])[0]
+            curve.append({"env_steps": collector.steps, "lap_steps": lap.steps, "lap_finished": lap.finished})
+            pbar.set_description(f"lap={lap.steps} finished={lap.finished}")
+            next_eval += cfg.eval_interval
     pbar.close()
-    return evaluator
+    laps = common.evaluate_policy(lap_policy(actor))
+    curve.append({"env_steps": collector.steps, "lap_steps": laps[0].steps, "lap_finished": laps[0].finished})
+    final = common.summarize_laps(laps)
+    final.pop("ci", None)
+    final = {key: float(value) for key, value in final.items()}
+    print(f"Final policy: {final}", flush=True)
+
+    out_dir = common.PROJECT_DIR / "results" / "rlpd" / Path(cfg.dataset_path).stem / f"seed{cfg.seed}"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    torch.save(actor.state_dict(), out_dir / "policy.pt")
+    with open(out_dir / "curve.csv", "w", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=list(curve[0]))
+        writer.writeheader()
+        writer.writerows(curve)
+    with open(out_dir / "summary.json", "w") as f:
+        json.dump({"config": asdict(cfg), "final": final}, f, indent=2)
+    return final
