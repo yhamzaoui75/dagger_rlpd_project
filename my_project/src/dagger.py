@@ -1,6 +1,4 @@
-import argparse
-import csv
-import json
+import argparse, csv, json
 from dataclasses import asdict, dataclass, replace
 
 import torch
@@ -62,44 +60,43 @@ def train_from(dataset, cfg: DAggerConfig) -> tuple[DAggerActor, float]:
 
 
 def run_dagger(cfg: DAggerConfig) -> dict:
-    """Run DAgger for one seed; the lap driven at iteration i > 1 measures the policy trained at i - 1.
+    """Run DAgger for one seed and save its learning curve.
 
-    The environment and the policies are deterministic, so that lap gives the
-    exact lap time of the policy. The final policy is evaluated with the
-    shared protocol of ``common.evaluate_policy``.
+    Each row of ``curve.csv`` gives a policy's lap time against the number of
+    environment steps it was trained on. The lap driven at iteration i > 1
+    measures the policy trained at iteration i - 1 (the environment and the
+    policies are deterministic, so one lap gives the exact lap time); the last
+    row is the final policy, evaluated with ``common.evaluate_policy``.
     """
     torch.manual_seed(cfg.seed)
     env = VecEnv(cfg.env_name, 1, seed=cfg.seed)
     out_dir = common.PROJECT_DIR / "results" / "dagger" / f"seed{cfg.seed}"
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    actor, dataset, log = ExpertActor(), None, []
+    actor, dataset, curve = ExpertActor(), None, []
     for i in range(1, cfg.n_iterations + 1):
         episode = EpisodeCollector(env, actor).collect(1)[0]
+        if i > 1:
+            curve.append({"env_steps": len(dataset), "lap_steps": len(episode.reward),
+                          "lap_finished": bool(episode.terminated)})
+            print(f"iteration {i}: policy trained on {curve[-1]['env_steps']} steps -> "
+                  f"lap {curve[-1]['lap_steps']} steps (finished: {curve[-1]['lap_finished']})", flush=True)
         dataset = episode.obs if dataset is None else type(dataset).cat([dataset, episode.obs])
         actor, loss = train_from(dataset, cfg)
-        log.append({
-            "iteration": i,
-            "driver": "expert" if i == 1 else f"policy {i - 1}",
-            "lap_steps": len(episode.reward),
-            "lap_finished": bool(episode.terminated),
-            "dataset_size": len(dataset),
-            "train_loss": loss,
-        })
-        print(log[-1], flush=True)
 
     with torch.no_grad():
-        final = common.summarize_laps(common.evaluate_policy(
-            lambda obs: actor.model(torch.as_tensor(obs["features"])).numpy()))
+        laps = common.evaluate_policy(lambda obs: actor.model(torch.as_tensor(obs["features"])).numpy())
+    curve.append({"env_steps": len(dataset), "lap_steps": laps[0].steps, "lap_finished": laps[0].finished})
+    final = common.summarize_laps(laps)
     final.pop("ci", None)
     final = {key: float(value) for key, value in final.items()}
     print(f"Final policy: {final}", flush=True)
 
     torch.save(actor.state_dict(), out_dir / "policy.pt")
-    with open(out_dir / "log.csv", "w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=list(log[0]))
+    with open(out_dir / "curve.csv", "w", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=list(curve[0]))
         writer.writeheader()
-        writer.writerows(log)
+        writer.writerows(curve)
     with open(out_dir / "summary.json", "w") as f:
         json.dump({"config": asdict(cfg), "final": final}, f, indent=2)
     return final
