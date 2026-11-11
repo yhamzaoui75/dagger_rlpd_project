@@ -1,0 +1,23 @@
+{
+  "config": {
+    "env_name": "SoloKart-v0",
+    "seed": 2,
+    "n_iterations": 15,
+    "n_epochs": 30,
+    "batch_size": 256,
+    "hidden": [
+      256,
+      256
+    ],
+    "lr": 0.0003
+  },
+  "final": {
+    "laps": 10.0,
+    "finished": 10.0,
+    "mean": 570.0,
+    "iqm": 570.0,
+    "q10": 570.0,
+    "q90": 570.0,
+    "std": 0.0
+  }
+}

@@ -1,0 +1,151 @@
+agent,action_space,seed,finished,steps,race_time,error
+Agent1,continuous,42,True,570,55.047462463378906,
+Agent1,continuous,43,True,570,55.047462463378906,
+Agent1,continuous,44,True,570,55.047462463378906,
+Agent1,continuous,45,True,570,55.047462463378906,
+Agent1,continuous,46,True,570,55.047462463378906,
+Agent1,continuous,47,True,570,55.047462463378906,
+Agent1,continuous,48,True,570,55.047462463378906,
+Agent1,continuous,49,True,570,55.047462463378906,
+Agent1,continuous,50,True,570,55.047462463378906,
+Agent1,continuous,51,True,570,55.047462463378906,
+Agent1,continuous,52,True,570,55.047462463378906,
+Agent1,continuous,53,True,570,55.047462463378906,
+Agent1,continuous,54,True,570,55.047462463378906,
+Agent1,continuous,55,True,570,55.047462463378906,
+Agent1,continuous,56,True,570,55.047462463378906,
+Agent1,continuous,57,True,570,55.047462463378906,
+Agent1,continuous,58,True,570,55.047462463378906,
+Agent1,continuous,59,True,570,55.047462463378906,
+Agent1,continuous,60,True,570,55.047462463378906,
+Agent1,continuous,61,True,570,55.047462463378906,
+Agent1,continuous,62,True,570,55.047462463378906,
+Agent1,continuous,63,True,570,55.047462463378906,
+Agent1,continuous,64,True,570,55.047462463378906,
+Agent1,continuous,65,True,570,55.047462463378906,
+Agent1,continuous,66,True,570,55.047462463378906,
+Agent1,continuous,67,True,570,55.047462463378906,
+Agent1,continuous,68,True,570,55.047462463378906,
+Agent1,continuous,69,True,570,55.047462463378906,
+Agent1,continuous,70,True,570,55.047462463378906,
+Agent1,continuous,71,True,570,55.047462463378906,
+Agent2,continuous,42,False,2000,nan,step budget exhausted
+Agent2,continuous,43,False,2000,nan,step budget exhausted
+Agent2,continuous,44,False,2000,nan,step budget exhausted
+Agent2,continuous,45,False,2000,nan,step budget exhausted
+Agent2,continuous,46,False,2000,nan,step budget exhausted
+Agent2,continuous,47,False,2000,nan,step budget exhausted
+Agent2,continuous,48,False,2000,nan,step budget exhausted
+Agent2,continuous,49,False,2000,nan,step budget exhausted
+Agent2,continuous,50,False,2000,nan,step budget exhausted
+Agent2,continuous,51,False,2000,nan,step budget exhausted
+Agent2,continuous,52,False,2000,nan,step budget exhausted
+Agent2,continuous,53,False,2000,nan,step budget exhausted
+Agent2,continuous,54,False,2000,nan,step budget exhausted
+Agent2,continuous,55,False,2000,nan,step budget exhausted
+Agent2,continuous,56,False,2000,nan,step budget exhausted
+Agent2,continuous,57,False,2000,nan,step budget exhausted
+Agent2,continuous,58,False,2000,nan,step budget exhausted
+Agent2,continuous,59,False,2000,nan,step budget exhausted
+Agent2,continuous,60,False,2000,nan,step budget exhausted
+Agent2,continuous,61,False,2000,nan,step budget exhausted
+Agent2,continuous,62,False,2000,nan,step budget exhausted
+Agent2,continuous,63,False,2000,nan,step budget exhausted
+Agent2,continuous,64,False,2000,nan,step budget exhausted
+Agent2,continuous,65,False,2000,nan,step budget exhausted
+Agent2,continuous,66,False,2000,nan,step budget exhausted
+Agent2,continuous,67,False,2000,nan,step budget exhausted
+Agent2,continuous,68,False,2000,nan,step budget exhausted
+Agent2,continuous,69,False,2000,nan,step budget exhausted
+Agent2,continuous,70,False,2000,nan,step budget exhausted
+Agent2,continuous,71,False,2000,nan,step budget exhausted
+Agent3,continuous,42,True,586,56.616580963134766,
+Agent3,continuous,43,True,586,56.616580963134766,
+Agent3,continuous,44,True,586,56.616580963134766,
+Agent3,continuous,45,True,586,56.616580963134766,
+Agent3,continuous,46,True,586,56.616580963134766,
+Agent3,continuous,47,True,586,56.616580963134766,
+Agent3,continuous,48,True,586,56.616580963134766,
+Agent3,continuous,49,True,586,56.616580963134766,
+Agent3,continuous,50,True,586,56.616580963134766,
+Agent3,continuous,51,True,586,56.616580963134766,
+Agent3,continuous,52,True,586,56.616580963134766,
+Agent3,continuous,53,True,586,56.616580963134766,
+Agent3,continuous,54,True,586,56.616580963134766,
+Agent3,continuous,55,True,586,56.616580963134766,
+Agent3,continuous,56,True,586,56.616580963134766,
+Agent3,continuous,57,True,586,56.616580963134766,
+Agent3,continuous,58,True,586,56.616580963134766,
+Agent3,continuous,59,True,586,56.616580963134766,
+Agent3,continuous,60,True,586,56.616580963134766,
+Agent3,continuous,61,True,586,56.616580963134766,
+Agent3,continuous,62,True,586,56.616580963134766,
+Agent3,continuous,63,True,586,56.616580963134766,
+Agent3,continuous,64,True,586,56.616580963134766,
+Agent3,continuous,65,True,586,56.616580963134766,
+Agent3,continuous,66,True,586,56.616580963134766,
+Agent3,continuous,67,True,586,56.616580963134766,
+Agent3,continuous,68,True,586,56.616580963134766,
+Agent3,continuous,69,True,586,56.616580963134766,
+Agent3,continuous,70,True,586,56.616580963134766,
+Agent3,continuous,71,True,586,56.616580963134766,
+Agent4,continuous,42,True,585,56.5145378112793,
+Agent4,continuous,43,True,585,56.5145378112793,
+Agent4,continuous,44,True,585,56.5145378112793,
+Agent4,continuous,45,True,585,56.5145378112793,
+Agent4,continuous,46,True,585,56.5145378112793,
+Agent4,continuous,47,True,585,56.5145378112793,
+Agent4,continuous,48,True,585,56.5145378112793,
+Agent4,continuous,49,True,585,56.5145378112793,
+Agent4,continuous,50,True,585,56.5145378112793,
+Agent4,continuous,51,True,585,56.5145378112793,
+Agent4,continuous,52,True,585,56.5145378112793,
+Agent4,continuous,53,True,585,56.5145378112793,
+Agent4,continuous,54,True,585,56.5145378112793,
+Agent4,continuous,55,True,585,56.5145378112793,
+Agent4,continuous,56,True,585,56.5145378112793,
+Agent4,continuous,57,True,585,56.5145378112793,
+Agent4,continuous,58,True,585,56.5145378112793,
+Agent4,continuous,59,True,585,56.5145378112793,
+Agent4,continuous,60,True,585,56.5145378112793,
+Agent4,continuous,61,True,585,56.5145378112793,
+Agent4,continuous,62,True,585,56.5145378112793,
+Agent4,continuous,63,True,585,56.5145378112793,
+Agent4,continuous,64,True,585,56.5145378112793,
+Agent4,continuous,65,True,585,56.5145378112793,
+Agent4,continuous,66,True,585,56.5145378112793,
+Agent4,continuous,67,True,585,56.5145378112793,
+Agent4,continuous,68,True,585,56.5145378112793,
+Agent4,continuous,69,True,585,56.5145378112793,
+Agent4,continuous,70,True,585,56.5145378112793,
+Agent4,continuous,71,True,585,56.5145378112793,
+Agent5,continuous,42,True,590,57.037200927734375,
+Agent5,continuous,43,True,590,57.037200927734375,
+Agent5,continuous,44,True,590,57.037200927734375,
+Agent5,continuous,45,True,590,57.037200927734375,
+Agent5,continuous,46,True,590,57.037200927734375,
+Agent5,continuous,47,True,590,57.037200927734375,
+Agent5,continuous,48,True,590,57.037200927734375,
+Agent5,continuous,49,True,590,57.037200927734375,
+Agent5,continuous,50,True,590,57.037200927734375,
+Agent5,continuous,51,True,590,57.037200927734375,
+Agent5,continuous,52,True,590,57.037200927734375,
+Agent5,continuous,53,True,590,57.037200927734375,
+Agent5,continuous,54,True,590,57.037200927734375,
+Agent5,continuous,55,True,590,57.037200927734375,
+Agent5,continuous,56,True,590,57.037200927734375,
+Agent5,continuous,57,True,590,57.037200927734375,
+Agent5,continuous,58,True,590,57.037200927734375,
+Agent5,continuous,59,True,590,57.037200927734375,
+Agent5,continuous,60,True,590,57.037200927734375,
+Agent5,continuous,61,True,590,57.037200927734375,
+Agent5,continuous,62,True,590,57.037200927734375,
+Agent5,continuous,63,True,590,57.037200927734375,
+Agent5,continuous,64,True,590,57.037200927734375,
+Agent5,continuous,65,True,590,57.037200927734375,
+Agent5,continuous,66,True,590,57.037200927734375,
+Agent5,continuous,67,True,590,57.037200927734375,
+Agent5,continuous,68,True,590,57.037200927734375,
+Agent5,continuous,69,True,590,57.037200927734375,
+Agent5,continuous,70,True,590,57.037200927734375,
+Agent5,continuous,71,True,590,57.037200927734375,

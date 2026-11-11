@@ -23,3 +23,8 @@ pyproject.toml
 /docs/
 
 src/agents/team1/docs/.DS_Store
+
+# Résultats du projet DAgger vs RLPD
+!my_project/results/**/*.csv
+!my_project/results/**/*.json
+!my_project/data/*.csv
