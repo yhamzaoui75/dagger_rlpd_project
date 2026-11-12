@@ -29,3 +29,5 @@ my_project/logs_cloud/
 my_project/data_cloud/
 .analysis_tmp/
 *.log
+
+my_project/results_main/
