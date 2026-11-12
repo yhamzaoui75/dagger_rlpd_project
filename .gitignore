@@ -23,3 +23,9 @@ pyproject.toml
 /docs/
 
 src/agents/team1/docs/.DS_Store
+
+my_project/results_cloud/
+my_project/logs_cloud/
+my_project/data_cloud/
+.analysis_tmp/
+*.log
